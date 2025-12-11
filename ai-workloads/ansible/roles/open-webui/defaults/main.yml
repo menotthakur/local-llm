@@ -1,0 +1,25 @@
+---
+# Open-webui configuration
+
+# Namespace (same as Ollama)
+openwebui_namespace: ollama
+
+# Open-webui image settings
+openwebui_image: ghcr.io/open-webui/open-webui:main
+openwebui_image_pull_policy: IfNotPresent
+
+# Ollama connection
+openwebui_ollama_url: "http://ollama.ollama.svc.cluster.local:11434"
+
+# Resource requests and limits
+openwebui_cpu_request: "250m"
+openwebui_memory_request: "512Mi"
+openwebui_cpu_limit: "1"
+openwebui_memory_limit: "2Gi"
+
+# Storage configuration
+openwebui_storage_size: 5Gi
+
+# Health check settings
+openwebui_readiness_initial_delay: 30
+openwebui_liveness_initial_delay: 60

@@ -1,0 +1,64 @@
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.cursor/
+
+# Python (if any)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Ansible
+*.retry
+.vault_pass
+ansible.log
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+.kube/
+
+# Secrets and sensitive data
+*.key
+*.pem
+*.crt
+secrets/
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Reference-only files (personal notes - not for sharing)
+personal/
+docs/

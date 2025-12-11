@@ -1,0 +1,62 @@
+---
+# Ollama deployment tasks
+
+- name: Create ollama namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ ollama_namespace }}"
+        labels:
+          app.kubernetes.io/name: ollama
+          app.kubernetes.io/part-of: ai-workloads
+
+- name: Create Ollama PVC
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'pvc.yaml.j2') | from_yaml }}"
+
+- name: Deploy Ollama
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'deployment.yaml.j2') | from_yaml }}"
+
+- name: Create Ollama service
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'service.yaml.j2') | from_yaml }}"
+
+- name: Wait for Ollama pod to be ready
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: "{{ ollama_namespace }}"
+    label_selectors:
+      - app=ollama
+    wait: yes
+    wait_condition:
+      type: Ready
+      status: "True"
+    wait_timeout: 300
+  register: ollama_pod
+
+- name: Display Ollama pod status
+  ansible.builtin.debug:
+    msg: "Ollama pod is ready: {{ ollama_pod.resources[0].metadata.name }}"
+
+- name: Pull default model (if specified)
+  kubernetes.core.k8s_exec:
+    namespace: "{{ ollama_namespace }}"
+    pod: "{{ ollama_pod.resources[0].metadata.name }}"
+    command: ollama pull {{ ollama_default_model }}
+  when: ollama_default_model | length > 0
+  register: model_pull
+  ignore_errors: yes
+
+- name: Display model pull result
+  ansible.builtin.debug:
+    msg: "Model '{{ ollama_default_model }}' pulled successfully"
+  when: 
+    - ollama_default_model | length > 0
+    - model_pull is succeeded

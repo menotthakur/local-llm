@@ -1,0 +1,41 @@
+---
+# Open-webui deployment tasks
+
+- name: Create Open-webui PVC
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'pvc.yaml.j2') | from_yaml }}"
+
+- name: Deploy Open-webui
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'deployment.yaml.j2') | from_yaml }}"
+
+- name: Create Open-webui service
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'service.yaml.j2') | from_yaml }}"
+
+- name: Wait for Open-webui pod to be ready
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: "{{ openwebui_namespace }}"
+    label_selectors:
+      - app=open-webui
+    wait: yes
+    wait_condition:
+      type: Ready
+      status: "True"
+    wait_timeout: 300
+  register: openwebui_pod
+
+- name: Display Open-webui pod status
+  ansible.builtin.debug:
+    msg: "Open-webui pod is ready: {{ openwebui_pod.resources[0].metadata.name }}"
+
+- name: Display access information
+  ansible.builtin.debug:
+    msg:
+      - "Open-webui is ready!"
+      - "Access via: kubectl port-forward -n {{ openwebui_namespace }} svc/open-webui 8080:8080"
+      - "Then open: http://localhost:8080"

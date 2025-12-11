@@ -1,0 +1,29 @@
+---
+# Ollama configuration
+
+# Namespace for all AI workloads
+ollama_namespace: ollama
+
+# Ollama image settings
+ollama_image: ollama/ollama:latest
+ollama_image_pull_policy: IfNotPresent
+
+# Resource requests and limits
+ollama_cpu_request: "500m"
+ollama_memory_request: "1Gi"
+ollama_cpu_limit: "2"
+ollama_memory_limit: "4Gi"
+
+# GPU configuration
+ollama_gpu_enabled: true
+ollama_gpu_count: 1
+
+# Storage configuration
+ollama_storage_size: 10Gi
+
+# Default model to pull after deployment (empty = none)
+ollama_default_model: ""
+
+# Health check settings
+ollama_readiness_initial_delay: 10
+ollama_liveness_initial_delay: 30

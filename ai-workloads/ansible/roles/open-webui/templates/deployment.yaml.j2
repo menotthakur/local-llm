@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-webui
+  namespace: {{ openwebui_namespace }}
+  labels:
+    app: open-webui
+    app.kubernetes.io/name: open-webui
+    app.kubernetes.io/component: web-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: open-webui
+  template:
+    metadata:
+      labels:
+        app: open-webui
+    spec:
+      containers:
+      - name: open-webui
+        image: {{ openwebui_image }}
+        imagePullPolicy: {{ openwebui_image_pull_policy }}
+        ports:
+        - name: http
+          containerPort: 8080
+        env:
+        - name: OLLAMA_BASE_URL
+          value: "{{ openwebui_ollama_url }}"
+        resources:
+          requests:
+            cpu: "{{ openwebui_cpu_request }}"
+            memory: "{{ openwebui_memory_request }}"
+          limits:
+            cpu: "{{ openwebui_cpu_limit }}"
+            memory: "{{ openwebui_memory_limit }}"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: {{ openwebui_readiness_initial_delay }}
+          periodSeconds: 10
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: {{ openwebui_liveness_initial_delay }}
+          periodSeconds: 30
+          failureThreshold: 3
+        volumeMounts:
+        - name: open-webui-data
+          mountPath: /app/backend/data
+      volumes:
+      - name: open-webui-data
+        persistentVolumeClaim:
+          claimName: open-webui-data

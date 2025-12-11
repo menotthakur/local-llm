@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama
+  namespace: {{ ollama_namespace }}
+  labels:
+    app: ollama
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/component: llm-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+{% if ollama_gpu_enabled %}
+      runtimeClassName: nvidia
+{% endif %}
+      containers:
+      - name: ollama
+        image: {{ ollama_image }}
+        imagePullPolicy: {{ ollama_image_pull_policy }}
+        ports:
+        - name: http
+          containerPort: 11434
+        resources:
+          requests:
+            cpu: "{{ ollama_cpu_request }}"
+            memory: "{{ ollama_memory_request }}"
+          limits:
+            cpu: "{{ ollama_cpu_limit }}"
+            memory: "{{ ollama_memory_limit }}"
+{% if ollama_gpu_enabled %}
+            nvidia.com/gpu: {{ ollama_gpu_count }}
+{% endif %}
+        volumeMounts:
+        - name: ollama-data
+          mountPath: /root/.ollama
+        readinessProbe:
+          httpGet:
+            path: /api/tags
+            port: 11434
+          initialDelaySeconds: {{ ollama_readiness_initial_delay }}
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /api/tags
+            port: 11434
+          initialDelaySeconds: {{ ollama_liveness_initial_delay }}
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+      volumes:
+      - name: ollama-data
+        persistentVolumeClaim:
+          claimName: ollama-data

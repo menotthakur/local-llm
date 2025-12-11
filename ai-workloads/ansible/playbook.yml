@@ -1,0 +1,60 @@
+---
+# AI Workloads Deployment Playbook
+# Deploys Ollama + Open-webui on Kubernetes with GPU support
+
+- name: Deploy AI Workloads Stack
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    # Override defaults here or in group_vars
+    ollama_default_model: "llama3.2:1b"  # Set to "" to skip model pull
+    ollama_gpu_enabled: true
+    ollama_storage_size: "10Gi"
+    openwebui_storage_size: "5Gi"
+
+  pre_tasks:
+    - name: Verify kubectl is configured
+      ansible.builtin.command: kubectl cluster-info
+      register: cluster_info
+      changed_when: false
+      failed_when: cluster_info.rc != 0
+
+    - name: Display cluster info
+      ansible.builtin.debug:
+        msg: "Connected to Kubernetes cluster"
+
+  roles:
+    - role: ollama
+      tags:
+        - ollama
+        - llm
+
+    - role: open-webui
+      tags:
+        - open-webui
+        - ui
+
+  post_tasks:
+    - name: Display deployment summary
+      ansible.builtin.debug:
+        msg:
+          - "============================================"
+          - "AI Workloads Stack Deployed Successfully!"
+          - "============================================"
+          - ""
+          - "Components:"
+          - "  - Ollama (LLM Server) with GPU"
+          - "  - Open-webui (Chat Interface)"
+          - ""
+          - "Access Open-webui:"
+          - "  kubectl port-forward -n ollama svc/open-webui 8080:8080"
+          - "  Then open: http://localhost:8080"
+          - ""
+          - "Check pods:"
+          - "  kubectl get pods -n ollama"
+          - ""
+          - "Pull more models:"
+          - "  kubectl exec -n ollama deployment/ollama -- ollama pull <model>"
+          - "============================================"
